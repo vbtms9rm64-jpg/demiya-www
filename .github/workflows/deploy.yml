@@ -1,0 +1,85 @@
+name: Deploy marketing site
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-www
+  cancel-in-progress: true
+
+permissions:
+  id-token: write # required for OIDC role assumption
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build
+        run: npm run build
+        env:
+          # Not a secret: the contact form's Function URL is public by design,
+          # and the Lambda validates origin and honeypot. Content comes from
+          # src/data/, so the build has no external dependencies.
+          PUBLIC_CONTACT_ENDPOINT: ${{ vars.PUBLIC_CONTACT_ENDPOINT }}
+
+      # Everything below needs the infrastructure to exist. Until `terraform
+      # apply` has run and the repository variables are set, the build above
+      # still runs as a CI check and these steps skip rather than fail.
+      - name: Report deploy status
+        if: vars.AWS_ROLE_ARN == ''
+        run: |
+          echo "::notice::AWS_ROLE_ARN is not set — built only, nothing deployed."
+          echo "Set AWS_ROLE_ARN, AWS_REGION, S3_BUCKET and CLOUDFRONT_DISTRIBUTION"
+          echo "as repository variables once 'terraform apply' has run."
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        if: vars.AWS_ROLE_ARN != ''
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      # Three complementary filters partition the tree. The AWS CLI applies
+      # --exclude/--include to the destination as well, so --delete on each
+      # pass only ever considers that pass's own slice.
+      - name: Upload hashed assets (immutable)
+        if: vars.AWS_ROLE_ARN != ''
+        run: |
+          aws s3 sync dist/ "s3://${{ vars.S3_BUCKET }}" --delete \
+            --exclude "*" --include "_astro/*" \
+            --cache-control "public, max-age=31536000, immutable"
+
+      - name: Upload other assets
+        if: vars.AWS_ROLE_ARN != ''
+        run: |
+          aws s3 sync dist/ "s3://${{ vars.S3_BUCKET }}" --delete \
+            --exclude "_astro/*" --exclude "*.html" \
+            --cache-control "public, max-age=3600"
+
+      - name: Upload HTML (always revalidate)
+        if: vars.AWS_ROLE_ARN != ''
+        run: |
+          aws s3 sync dist/ "s3://${{ vars.S3_BUCKET }}" --delete \
+            --exclude "*" --include "*.html" \
+            --cache-control "public, max-age=0, must-revalidate"
+
+      # "/*" counts as a single path, and the first 1,000 paths per month are
+      # free — so this is effectively free at any sane deploy frequency.
+      - name: Invalidate CloudFront
+        if: vars.AWS_ROLE_ARN != ''
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id "${{ vars.CLOUDFRONT_DISTRIBUTION }}" \
+            --paths "/*"

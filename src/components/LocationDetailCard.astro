@@ -1,0 +1,170 @@
+---
+import { Image } from "astro:assets";
+import type { Location } from "../data/locations";
+
+/**
+ * The Locations & Order page card — a different layout from the home page's
+ * "Find Us" grid, matching the original (container 4af3dd01 and siblings):
+ *
+ *   card         --width: 48% at ≥1025px, 100% in the 768–1024px band
+ *   top row      image column at --width: 53%, text column takes the rest
+ *   image        height: 102px (167px below 767px), border-radius: 10px
+ *   name         icon-list with a map-marker, 19px
+ *   address      heading, 14px
+ *   map          Google Maps iframe, 300px tall, border-radius: 10px, lazy
+ *   buttons      Order Online + get directions
+ *
+ * The home page's LocationCard is the 3-up variant with a 236px image and no
+ * map — the two pages genuinely differ, so they are two components.
+ */
+interface Props {
+  location: Location;
+}
+
+const { location } = Astro.props;
+
+const mapSrc =
+  `https://maps.google.com/maps?q=${encodeURIComponent(location.mapQuery)}` +
+  `&t=m&z=${location.mapZoom}&output=embed&iwloc=near`;
+---
+
+<article class="loc" id={location.slug}>
+  <div class="loc__head">
+    <div class="loc__media">
+      <Image
+        src={location.image}
+        alt={`Demiya ${location.name}`}
+        widths={[400, 800]}
+        sizes="(min-width: 1025px) 300px, (min-width: 768px) 50vw, 100vw"
+        class="loc__img"
+      />
+    </div>
+
+    <div class="loc__detail">
+      <p class="loc__name">
+        <svg viewBox="0 0 384 512" aria-hidden="true" focusable="false">
+          <path
+            fill="currentColor"
+            d="M172.3 501.7C27 291 0 269.4 0 192 0 86 86 0 192 0s192 86 192 192c0 77.4-27 99-172.3 309.7-9.5 13.8-29.9 13.8-39.4 0zM192 272a80 80 0 1 0 0-160 80 80 0 0 0 0 160z"
+          ></path>
+        </svg>
+        {location.name}
+      </p>
+      <h3 class="loc__address">{location.address}</h3>
+    </div>
+  </div>
+
+  {/*
+    Google Maps embed, as the original had it. Lazy-loaded so it only fetches
+    when scrolled into view — this is the one third-party runtime dependency
+    on the site. A fully local alternative exists in scripts/fetch-maps.mjs
+    (OpenStreetMap tiles, no external request); see the README.
+  */}
+  <iframe
+    class="loc__map"
+    src={mapSrc}
+    title={location.mapQuery}
+    aria-label={`Map of Demiya ${location.name}`}
+    loading="lazy"
+    referrerpolicy="no-referrer-when-downgrade"></iframe>
+
+  <div class="loc__actions">
+    <a href={location.orderUrl} rel="noopener" class="btn btn-primary">
+      Order Online
+      <span class="sr-only">from Demiya {location.name}</span>
+    </a>
+    <a href={location.directionsUrl} rel="noopener" class="btn-quiet">
+      get directions
+      <span class="sr-only">to Demiya {location.name}</span>
+    </a>
+  </div>
+</article>
+
+<style>
+  .loc {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .loc__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 15px;
+  }
+
+  .loc__media {
+    flex: 1 1 100%;
+  }
+
+  .loc__detail {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+
+  /* Image column is pinned at 53%, matching the original. */
+  @media (min-width: 768px) {
+    .loc__media {
+      flex: 0 0 53%;
+    }
+    .loc__detail {
+      flex: 1 1 0;
+    }
+  }
+
+  .loc__img {
+    display: block;
+    width: 100%;
+    height: 102px;
+    object-fit: cover;
+    border-radius: 10px;
+  }
+
+  @media (max-width: 767px) {
+    .loc__img {
+      height: 167px;
+    }
+  }
+
+  .loc__name {
+    display: flex;
+    align-items: center;
+    gap: 0.4em;
+    margin: 0;
+    color: var(--color-brick);
+    font-size: 19px;
+    line-height: 1.3;
+  }
+
+  .loc__name svg {
+    width: 0.8em;
+    height: 0.8em;
+    flex: none;
+  }
+
+  .loc__address {
+    margin: 0.4em 0 0;
+    color: var(--color-rosewood);
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.5;
+  }
+
+  /* 300px tall, matching the original's map widget. */
+  .loc__map {
+    display: block;
+    width: 100%;
+    height: 300px;
+    border: 0;
+    border-radius: 10px;
+  }
+
+  .loc__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 15px;
+  }
+</style>

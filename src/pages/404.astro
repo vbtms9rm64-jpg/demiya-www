@@ -1,0 +1,21 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout
+  title="Page not found — Demiya"
+  description="That page doesn't exist."
+>
+  <section class="mx-auto max-w-2xl px-6 py-24 text-center">
+    <h1 class="text-3xl font-semibold sm:text-4xl">We couldn't find that page</h1>
+    <p class="mt-4 text-rosewood">
+      The link may be out of date. Our locations and hours are the thing most people are after.
+    </p>
+    <a
+      href="/locations/"
+      class="mt-8 inline-block rounded bg-brick px-6 py-3 font-medium text-cream transition-opacity hover:opacity-90"
+    >
+      See locations
+    </a>
+  </section>
+</BaseLayout>

@@ -1,0 +1,172 @@
+---
+import { Image } from "astro:assets";
+import type { ImageMetadata } from "astro";
+
+/**
+ * Reproduces the original's Elementor Call-to-Action widget, cover skin:
+ *
+ *   .elementor-cta--skin-cover .elementor-cta--valign-bottom
+ *   .elementor-animated-content .elementor-bg-transform-zoom-in
+ *
+ * At rest the card is just the photo. On hover three things happen at once,
+ * all values taken from the rendered CSS of the restored site:
+ *
+ *   photo     transform: scale(1.2)            over 0.4s
+ *   overlay   background: #1E0E0A7D            over 1700ms
+ *   text      translateX(-1000px) → 0, fade in over 0.5s  (enter-from-left)
+ *
+ * Both the title and the description carry the animation, so neither is
+ * visible until hover — that is the original behaviour, not an oversight.
+ */
+interface Props {
+  name: string;
+  description: string;
+  image: ImageMetadata;
+}
+
+const { name, description, image } = Astro.props;
+---
+
+<article class="dish">
+  {/*
+    The Image is wrapped rather than styled directly: Astro's scoped styles
+    do not stamp the data-astro-cid attribute onto a component's rendered
+    <img>, so `.dish__bg[data-astro-cid-…]` would never match and the photo
+    would neither cover nor zoom. Targeting the img through :global() inside
+    a scoped wrapper is reliable.
+  */}
+  <div class="dish__media">
+    <Image
+      src={image}
+      alt={name}
+      widths={[400, 800, 1024]}
+      sizes="(min-width: 1024px) 380px, (min-width: 640px) 50vw, 100vw"
+    />
+  </div>
+  <div class="dish__overlay"></div>
+
+  <div class="dish__content">
+    <h3 class="dish__title dish__item">{name}</h3>
+    <p class="dish__desc dish__item">{description}</p>
+  </div>
+</article>
+
+<style>
+  .dish {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    border-radius: 10px;
+    isolation: isolate;
+  }
+
+  .dish__media {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    overflow: hidden;
+  }
+
+  .dish__media :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s;
+    will-change: transform;
+  }
+
+  .dish:hover .dish__media :global(img),
+  .dish:focus-within .dish__media :global(img) {
+    transform: scale(1.2);
+  }
+
+  .dish__overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    background-color: transparent;
+    transition: background-color 1700ms;
+  }
+
+  .dish:hover .dish__overlay,
+  .dish:focus-within .dish__overlay {
+    background-color: #1e0e0a7d;
+  }
+
+  .dish__content {
+    position: relative;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end; /* valign-bottom */
+    align-items: flex-start; /* text-align: start */
+    gap: 15px; /* content-item margin-bottom */
+    min-height: 351px;
+    padding: 35px;
+    /* 425px at tablet in the original — see the media query below. */
+    overflow: hidden;
+    color: #fff;
+    text-align: start;
+  }
+
+  .dish__title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 23px;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  .dish__desc {
+    margin: 0;
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    line-height: 1.55;
+  }
+
+  /* enter-from-left */
+  .dish__item {
+    transform: translateX(-1000px);
+    opacity: 0;
+    transition:
+      transform 0.5s,
+      opacity 0.5s;
+    will-change: transform, opacity;
+  }
+
+  .dish:hover .dish__item,
+  .dish:focus-within .dish__item {
+    transform: translateX(0);
+    opacity: 1;
+  }
+
+  /* Taller cards in the tablet band, matching the original. */
+  @media (min-width: 768px) and (max-width: 1024px) {
+    .dish__content {
+      min-height: 425px;
+    }
+  }
+
+  /*
+   * Touch devices have no hover, so the original leaves these descriptions
+   * unreachable on a phone. Show them permanently instead — the content
+   * matters more than the effect.
+   */
+  @media (hover: none) {
+    .dish__item {
+      transform: none;
+      opacity: 1;
+    }
+    .dish__overlay {
+      background-color: #1e0e0a7d;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .dish__media :global(img),
+    .dish__overlay,
+    .dish__item {
+      transition: none;
+    }
+  }
+</style>

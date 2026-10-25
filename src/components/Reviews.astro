@@ -1,0 +1,158 @@
+---
+import { reviews } from "../data/reviews";
+
+/**
+ * Replaces the original's Trustindex widget with static markup.
+ *
+ * The original used layout 15, category "slider", with
+ * data-review-target-width="300" — so ~300px cards that only actually slide
+ * once they outrun the container. Reproduced with CSS scroll-snap rather
+ * than a JS carousel: same behaviour, no JavaScript.
+ *
+ * The Google mark and "Posted on Google" are attribution, which Google's
+ * terms require. Do not remove them.
+ */
+
+const fmtDate = (iso: string) =>
+  new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-US", {
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+---
+
+<div
+  class="reviews"
+  role="region"
+  aria-label="Google reviews, scrollable"
+  tabindex="0"
+>
+  {
+    reviews.map((review) => (
+      <article class="review">
+        <div class="review__stars" role="img" aria-label={`${review.rating} out of 5 stars`}>
+          {Array.from({ length: review.rating }).map(() => (
+            <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+              <path
+                fill="#FBBC04"
+                d="M10 1.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8L1.6 7.7l5.8-.8L10 1.6z"
+              />
+            </svg>
+          ))}
+        </div>
+
+        <p class="review__text">{review.text}</p>
+
+        <footer class="review__footer">
+          <div>
+            <p class="review__author">{review.author}</p>
+            <p class="review__date">{fmtDate(review.date)}</p>
+          </div>
+
+          <span class="review__source">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path
+                fill="#4285F4"
+                d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5a5.6 5.6 0 0 1-2.4 3.7v3h3.9c2.3-2.1 3.5-5.2 3.5-8.9z"
+              />
+              <path
+                fill="#34A853"
+                d="M12 24c3.2 0 5.9-1.1 7.9-2.9l-3.9-3c-1 .7-2.3 1.1-4 1.1-3.1 0-5.7-2.1-6.6-4.9H1.4v3.1A12 12 0 0 0 12 24z"
+              />
+              <path
+                fill="#FBBC04"
+                d="M5.4 14.3a7.2 7.2 0 0 1 0-4.6V6.6H1.4a12 12 0 0 0 0 10.8l4-3.1z"
+              />
+              <path
+                fill="#EA4335"
+                d="M12 4.8c1.8 0 3.3.6 4.6 1.8l3.4-3.4A12 12 0 0 0 1.4 6.6l4 3.1C6.3 6.9 8.9 4.8 12 4.8z"
+              />
+            </svg>
+            Posted on Google
+          </span>
+        </footer>
+      </article>
+    ))
+  }
+</div>
+
+<style>
+  .reviews {
+    display: flex;
+    gap: 1rem;
+    margin-top: 3rem;
+    padding-bottom: 0.5rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: thin;
+    overscroll-behavior-x: contain;
+  }
+
+  .review {
+    flex: 0 0 300px; /* data-review-target-width */
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+    padding: 1.5rem;
+    border: 1px solid var(--color-blush);
+    border-radius: 10px;
+    background: #fff;
+    text-align: left;
+  }
+
+  .review__stars {
+    display: flex;
+    gap: 2px;
+  }
+
+  .review__stars svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .review__text {
+    flex: 1;
+    margin: 0;
+    color: var(--color-maroon);
+    font-size: 0.9375rem;
+    line-height: 1.6;
+  }
+
+  .review__footer {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding-top: 0.875rem;
+    border-top: 1px solid var(--color-blush);
+  }
+
+  .review__author {
+    margin: 0;
+    color: var(--color-maroon);
+    font-weight: 600;
+    font-size: 0.875rem;
+  }
+
+  .review__date {
+    margin: 0;
+    color: var(--color-rosewood);
+    font-size: 0.75rem;
+  }
+
+  .review__source {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    flex: none;
+    color: var(--color-rosewood);
+    font-size: 0.6875rem;
+    white-space: nowrap;
+  }
+
+  .review__source svg {
+    width: 14px;
+    height: 14px;
+  }
+</style>

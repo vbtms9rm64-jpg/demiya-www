@@ -1,0 +1,66 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import PageHero from "../components/PageHero.astro";
+import Section from "../components/Section.astro";
+import LocationDetailCard from "../components/LocationDetailCard.astro";
+import Reviews from "../components/Reviews.astro";
+import InstagramCta from "../components/InstagramCta.astro";
+import { locations } from "../data/locations";
+import { findUs, reviews as reviewsCopy } from "../data/content";
+import { site } from "../data/site";
+
+// LocalBusiness structured data per location. This helps Google re-establish
+// the real pages after the spam-SEO injection — see INCIDENT-RESTORE-HARDEN.md §7.
+const schema = locations.map((loc) => {
+  const [street, locality, regionZip] = loc.address.split(", ");
+  const [region, postalCode] = (regionZip ?? "").replace(/\s*\(.*\)$/, "").split(" ");
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "Restaurant",
+    name: `Demiya ${loc.name}`,
+    servesCuisine: "Japanese",
+    url: `${site.domain}/locations-order/#${loc.slug}`,
+    hasMenu: loc.orderUrl,
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: street,
+      addressLocality: locality,
+      addressRegion: region,
+      postalCode,
+      addressCountry: "US",
+    },
+  };
+});
+---
+
+<BaseLayout
+  title="Locations & Order — Demiya"
+  description="Five Demiya locations across the Bay Area. Order online for pickup from your nearest kitchen."
+>
+  <!-- Slim header band (el 2ac38017): radial overlay, 255px. -->
+  <PageHero
+    eyebrow="Demiya Restaurant"
+    heading="Locations & Order"
+    overlay="radial"
+    minHeight={255}
+  />
+
+  {/*
+    Two-up at ≥1025px, full width in the 768–1024px band — the original's
+    cards are --width:48% with a 100% override for tablet, not a 3-up grid.
+  */}
+  <Section eyebrow={findUs.eyebrow} heading={findUs.heading} body={findUs.body}>
+    <div class="mt-12 grid grid-cols-1 gap-x-[15px] gap-y-12 xl:grid-cols-2">
+      {locations.map((location) => <LocationDetailCard location={location} />)}
+    </div>
+  </Section>
+
+  <Section eyebrow={reviewsCopy.eyebrow} heading={reviewsCopy.heading} body={reviewsCopy.body}>
+    <Reviews />
+  </Section>
+
+  <InstagramCta />
+
+  <script type="application/ld+json" set:html={JSON.stringify(schema)} />
+</BaseLayout>

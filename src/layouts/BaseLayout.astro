@@ -1,0 +1,167 @@
+---
+import { Image } from "astro:assets";
+import "../styles/global.css";
+import { site, nav } from "../data/site";
+import logo from "../assets/Demiya-logo.png";
+
+interface Props {
+  title: string;
+  description: string;
+}
+
+const { title, description } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site ?? site.domain).href;
+const path = Astro.url.pathname;
+
+const isActive = (href: string) =>
+  href === "/" ? path === "/" : path.startsWith(href);
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonical} />
+
+    <link rel="sitemap" href="/sitemap-index.xml" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Playfair+Display:wght@500;600;700&display=swap"
+    />
+  </head>
+
+  <body class="flex min-h-screen flex-col">
+    <a
+      href="#main"
+      class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-brick focus:px-4 focus:py-2 focus:text-cream"
+    >
+      Skip to content
+    </a>
+
+    <header class="sticky top-0 z-40 border-b border-blush/70 bg-cream/95 backdrop-blur">
+      <div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-3">
+        {/* Original header logo is 156px wide (2279×741 source → ~51px tall). */}
+        <a href="/" class="flex items-center gap-3" aria-label="Demiya — home">
+          <Image src={logo} alt="Demiya" width={156} densities={[1, 2]} class="w-[156px] h-auto" />
+        </a>
+
+        <nav aria-label="Primary" class="hidden md:block">
+          <ul class="flex items-center gap-7 text-sm font-medium">
+            {
+              nav.map((item) => (
+                <li>
+                  <a
+                    href={item.href}
+                    aria-current={isActive(item.href) ? "page" : undefined}
+                    class:list={[
+                      "transition-colors hover:text-brick",
+                      isActive(item.href) ? "text-brick" : "text-maroon",
+                    ]}
+                  >
+                    {item.label}
+                  </a>
+                </li>
+              ))
+            }
+            <li>
+              <a
+                href={site.demiPaloAlto.url}
+                class="text-maroon transition-colors hover:text-brick"
+              >
+                {site.demiPaloAlto.label} <span aria-hidden="true">↗</span>
+              </a>
+            </li>
+          </ul>
+        </nav>
+
+        <a href="/locations-order/" class="btn btn-primary !px-5 !py-2.5">Order Online</a>
+      </div>
+
+      {/* Small screens: the primary links the header has no room for. */}
+      <nav aria-label="Primary, compact" class="md:hidden">
+        <ul
+          class="flex items-center justify-center gap-6 border-t border-blush/70 px-5 py-2 text-sm font-medium"
+        >
+          {
+            nav.map((item) => (
+              <li>
+                <a
+                  href={item.href}
+                  aria-current={isActive(item.href) ? "page" : undefined}
+                  class:list={[isActive(item.href) ? "text-brick" : "text-maroon"]}
+                >
+                  {item.label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+    </header>
+
+    <main id="main" class="flex-1">
+      <slot />
+    </main>
+
+    <footer class="mt-24 bg-espresso text-cream">
+      <div class="mx-auto max-w-6xl px-5 py-14">
+        <div class="flex flex-col gap-10 sm:flex-row sm:justify-between">
+          {/* Footer headings are 16px, dropping to 15px below 767px. */}
+          <div class="max-w-sm">
+            <p class="font-display text-[15px] sm:text-base">{site.tagline}</p>
+            <p class="mt-4 text-[15px] text-cream/70 sm:text-base">
+              Customer support: text only at{" "}
+              <a href={site.supportSmsHref} class="underline underline-offset-4 hover:text-cream">
+                {site.supportSms}
+              </a>
+            </p>
+          </div>
+
+          <nav aria-label="Footer">
+            <ul class="flex flex-col gap-3 text-sm">
+              {
+                nav.map((item) => (
+                  <li>
+                    <a href={item.href} class="text-cream/80 hover:text-cream">
+                      {item.label}
+                    </a>
+                  </li>
+                ))
+              }
+              <li>
+                <a href="/contact/" class="text-cream/80 hover:text-cream">Contact</a>
+              </li>
+              <li>
+                <a href={site.instagram} rel="me noopener" class="text-cream/80 hover:text-cream">
+                  Instagram {site.instagramHandle}
+                </a>
+              </li>
+              <li>
+                <a href={site.demiPaloAlto.url} class="text-cream/80 hover:text-cream">
+                  {site.demiPaloAlto.footerLabel} <span aria-hidden="true">↗</span>
+                </a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+
+        {/* Copyright bar: 14px, 60px min-height in the original. */}
+        <p
+          class="mt-12 flex min-h-[60px] items-center border-t border-cream/15 pt-6 text-sm text-cream/60"
+        >
+          {site.copyright}
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>

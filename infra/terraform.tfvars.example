@@ -1,0 +1,29 @@
+# cp terraform.tfvars.example terraform.tfvars, then edit.
+
+aws_region        = "us-west-2"
+domain_name       = "demiya.restaurant"
+route53_zone_name = "demiya.restaurant"
+
+# Which hostname actually serves content. The other 301-redirects to it.
+canonical_host = "demiya.restaurant"
+
+# Must be globally unique across all of S3.
+bucket_name = "demiya-www-origin"
+
+# North America + Europe. Raise to PriceClass_All only if you have traffic
+# from Asia-Pacific or South America worth paying for.
+price_class = "PriceClass_100"
+
+# Contact form. ses_identity must already be verified in SES in aws_region,
+# and SES must be out of sandbox to deliver to arbitrary recipients.
+ses_identity            = "demiya.restaurant"
+contact_from_address    = "website@demiya.restaurant"
+contact_to_address      = "hello@demiya.restaurant"
+contact_max_concurrency = 5
+
+github_repository = "vbtms9rm64-jpg/demiya-www"
+github_deploy_ref = "refs/heads/main"
+
+# Set false if another stack in this AWS account already created the GitHub
+# OIDC provider — an account can only hold one per URL.
+create_github_oidc_provider = true

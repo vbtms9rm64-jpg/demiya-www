@@ -1,0 +1,67 @@
+---
+import { Image } from "astro:assets";
+import type { Location } from "../data/locations";
+
+interface Props {
+  location: Location;
+  /** Show the hours table (Hours page) or just ordering (Home, Locations). */
+  showHours?: boolean;
+}
+
+const { location, showHours = false } = Astro.props;
+---
+
+<article
+  id={location.slug}
+  class="flex flex-col overflow-hidden rounded-xl border border-blush bg-white/60 shadow-sm"
+>
+  {/* Fixed 236px tall with cover, matching the original's image widget. */}
+  <Image
+    src={location.image}
+    alt={`Demiya ${location.name}`}
+    widths={[400, 800]}
+    sizes="(min-width: 1024px) 32vw, (min-width: 768px) 48vw, 100vw"
+    class="h-[236px] w-full object-cover"
+  />
+
+  <div class="flex flex-1 flex-col gap-4 p-6">
+    <div>
+      <h3 class="font-display text-xl font-semibold text-maroon">{location.name}</h3>
+      <p class="mt-2 text-sm leading-relaxed text-rosewood">{location.address}</p>
+    </div>
+
+    {
+      showHours && (
+        <table class="w-full text-sm">
+          <caption class="sr-only">Opening hours for Demiya {location.name}</caption>
+          <tbody>
+            {location.hours.map((row) => (
+              <tr class="border-b border-blush/60 last:border-0">
+                <th
+                  scope="row"
+                  class="py-1.5 pr-4 text-left align-top font-medium whitespace-nowrap"
+                >
+                  {row.days}
+                </th>
+                <td class="py-1.5 text-right text-rosewood tabular-nums">
+                  {row.times ?? <span class="text-rosewood/70">Closed</span>}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )
+    }
+
+    <div class="mt-auto flex flex-wrap items-center gap-3 pt-2">
+      <a href={location.orderUrl} rel="noopener" class="btn btn-primary">
+        Order Online
+        <span class="sr-only">from Demiya {location.name}</span>
+      </a>
+      <a href={location.directionsUrl} rel="noopener" class="btn-quiet">
+        get directions
+        <span class="sr-only">to Demiya {location.name}</span>
+      </a>
+    </div>
+  </div>
+</article>

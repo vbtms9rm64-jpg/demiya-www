@@ -1,0 +1,25 @@
+---
+interface Props {
+  eyebrow: string;
+  heading: string;
+  body?: string;
+  /** Centre the header block, as the original did for most sections. */
+  center?: boolean;
+  class?: string;
+}
+
+const { eyebrow, heading, body, center = true, class: className = "" } = Astro.props;
+---
+
+<section class={`mx-auto max-w-6xl px-5 py-20 ${className}`}>
+  <div class={center ? "mx-auto max-w-2xl text-center" : "max-w-2xl"}>
+    <p class="text-xs font-medium uppercase tracking-[0.2em] text-brick">{eyebrow}</p>
+    {/* Section headings are a flat 38px in the original, at every breakpoint. */}
+    <h2 class="mt-3 font-display text-[38px] leading-tight font-semibold text-maroon">
+      {heading}
+    </h2>
+    {body && <p class="mt-4 leading-relaxed text-rosewood">{body}</p>}
+  </div>
+
+  <slot />
+</section>

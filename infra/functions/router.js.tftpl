@@ -1,0 +1,54 @@
+// Viewer-request function. Two jobs:
+//
+//   1. Redirect the non-canonical hostname, so the site is not indexed at two
+//      addresses. Matters here: the domain is recovering from a spam-SEO
+//      compromise and duplicate content makes that worse.
+//
+//   2. Resolve directory URLs to the index document. Astro builds
+//      `about/index.html`, and CloudFront's default_root_object only applies
+//      to `/` — so `/about/` would 403 against a private S3 origin.
+//
+// Runtime is cloudfront-js-2.0 (ES6-ish: endsWith/includes are available).
+
+var CANONICAL_HOST = "${canonical_host}";
+
+function handler(event) {
+  var request = event.request;
+  var host = request.headers.host && request.headers.host.value;
+
+  if (host && host !== CANONICAL_HOST) {
+    var query = [];
+    for (var key in request.querystring) {
+      var param = request.querystring[key];
+      if (param.multiValue) {
+        for (var i = 0; i < param.multiValue.length; i++) {
+          query.push(key + "=" + param.multiValue[i].value);
+        }
+      } else if (param.value) {
+        query.push(key + "=" + param.value);
+      } else {
+        query.push(key);
+      }
+    }
+
+    var suffix = query.length > 0 ? "?" + query.join("&") : "";
+
+    return {
+      statusCode: 301,
+      statusDescription: "Moved Permanently",
+      headers: {
+        location: { value: "https://" + CANONICAL_HOST + request.uri + suffix }
+      }
+    };
+  }
+
+  var uri = request.uri;
+
+  if (uri.endsWith("/")) {
+    request.uri = uri + "index.html";
+  } else if (!uri.includes(".")) {
+    request.uri = uri + "/index.html";
+  }
+
+  return request;
+}

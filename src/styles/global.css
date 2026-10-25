@@ -1,0 +1,111 @@
+@import "tailwindcss";
+
+/*
+ * Brand tokens lifted from the Elementor global palette in the clean backup,
+ * so the rebuild matches the site people already recognise:
+ *
+ *   #FBF5F0  cream      — dominant page ground (1,149 uses)
+ *   #3B1A1A  maroon     — body text and headings
+ *   #C0392B  brick      — primary accent / calls to action
+ *   #7B3F3F  rosewood   — secondary accent, muted copy
+ *   #1E0E0A  espresso   — hero overlay base
+ *   #E8D5C8  blush      — subtle fills and rules
+ *
+ * Type is the site's existing pairing: Playfair Display + DM Sans.
+ */
+
+@theme {
+  --color-cream: #fbf5f0;
+  --color-maroon: #3b1a1a;
+  --color-brick: #c0392b;
+  --color-rosewood: #7b3f3f;
+  --color-espresso: #1e0e0a;
+  --color-blush: #e8d5c8;
+
+  --font-display: "Playfair Display", ui-serif, Georgia, serif;
+  --font-body: "DM Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+/*
+ * Button treatment carried over from Elementor: uppercase DM Sans 600 at
+ * 14px with tracking. The original applied this inline per-widget; here it
+ * is one utility so every call to action matches.
+ */
+.btn {
+  display: inline-block;
+  border-radius: 9999px;
+  padding: 0.75rem 1.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: opacity 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+}
+
+.btn-primary {
+  background-color: var(--color-brick);
+  color: var(--color-cream);
+}
+
+.btn-primary:hover {
+  opacity: 0.9;
+}
+
+.btn-outline {
+  border: 1px solid color-mix(in srgb, var(--color-cream) 50%, transparent);
+  color: var(--color-cream);
+}
+
+.btn-outline:hover {
+  background-color: var(--color-cream);
+  color: var(--color-maroon);
+}
+
+.btn-quiet {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-rosewood);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.btn-quiet:hover {
+  color: var(--color-brick);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-cream);
+  color: var(--color-maroon);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  text-wrap: balance;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-brick);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

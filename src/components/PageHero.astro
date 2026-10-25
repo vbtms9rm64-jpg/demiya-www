@@ -1,0 +1,136 @@
+---
+import { Image } from "astro:assets";
+import heroImg from "../assets/Demiya_Hero-scaled.jpg";
+
+/**
+ * Hero band, matching the original Elementor containers.
+ *
+ * Overlay values are taken from the rendered CSS of the restored site, not
+ * from the Elementor JSON — the JSON carries a `background_overlay_opacity`
+ * that Elementor does not emit for these elements, so trusting it would have
+ * made the overlay far too light.
+ *
+ *   Home        (el 06baec6)  radial, 650px
+ *   Hours       (el 04eea25)  flat,   650px
+ *   Locations   (el 2ac38017) radial, 255px
+ *
+ * #1E0E0AB8 is espresso at 72% alpha; #F2295B00 is fully transparent, so the
+ * radial fades to clear at the edges rather than scrimming the whole frame.
+ */
+interface Props {
+  eyebrow: string;
+  heading: string;
+  body?: string;
+  overlay?: "radial" | "flat";
+  minHeight?: number;
+  /**
+   * "center" — Home and Locations & Order.
+   * "split"  — Hours: text column at 69% with an aside beside it (the
+   *            original puts the hours accordion inside the hero band).
+   */
+  layout?: "center" | "split";
+}
+
+const {
+  eyebrow,
+  heading,
+  body,
+  overlay = "radial",
+  minHeight = 650,
+  layout = "center",
+} = Astro.props;
+
+const overlayStyle =
+  overlay === "radial"
+    ? "background-image: radial-gradient(at center center, #1E0E0AB8 29%, #F2295B00 100%);"
+    : "background-color: #1E0E0AB8;";
+---
+
+<section
+  class="relative isolate flex items-center overflow-hidden"
+  style={`min-height: ${minHeight}px;`}
+>
+  {/*
+    object-cover + object-top reproduces the original's
+    `background-size: cover; background-position: top center` — verified
+    identical on all three heroes, with no responsive overrides.
+
+    2560 is in the candidate list because that is what WordPress served from
+    Demiya_Hero-scaled.jpg; stopping at 2048 upscaled on large displays.
+  */}
+  <Image
+    src={heroImg}
+    alt=""
+    widths={[1024, 1600, 2048, 2560]}
+    sizes="100vw"
+    loading="eager"
+    fetchpriority="high"
+    class="absolute inset-0 -z-20 h-full w-full object-cover object-top"
+  />
+  <div class="absolute inset-0 -z-10" style={overlayStyle}></div>
+
+  <style>
+    .hero__inner {
+      width: 100%;
+      max-width: 72rem;
+      margin: 0 auto;
+      padding: 4rem 1.25rem;
+      text-align: center;
+    }
+
+    .hero__inner--split {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 2rem;
+      text-align: left;
+    }
+
+    .hero__text,
+    .hero__aside {
+      flex: 1 1 100%;
+      min-width: 0;
+    }
+
+    /* Text column is pinned at 69% in the original; the aside takes the rest. */
+    @media (min-width: 768px) {
+      .hero__text {
+        flex: 0 0 69%;
+      }
+      .hero__aside {
+        flex: 1 1 0;
+      }
+    }
+  </style>
+
+  <div class:list={["hero__inner", layout === "split" && "hero__inner--split"]}>
+    <div class={layout === "split" ? "hero__text" : ""}>
+      <p class="text-xs font-medium uppercase tracking-[0.22em] text-cream/80">{eyebrow}</p>
+      {/* Page H1 is a flat 50px in the original, at every breakpoint. */}
+      <h1
+        class:list={[
+          "mt-4 font-display text-[50px] leading-tight font-semibold text-cream",
+          layout === "center" && "mx-auto max-w-3xl",
+        ]}
+      >
+        {heading}
+      </h1>
+      {
+        body && (
+          <p
+            class:list={[
+              "mt-5 text-lg leading-relaxed text-cream/85",
+              layout === "center" && "mx-auto max-w-2xl",
+            ]}
+          >
+            {body}
+          </p>
+        )
+      }
+
+      <slot />
+    </div>
+
+    {layout === "split" && <div class="hero__aside"><slot name="aside" /></div>}
+  </div>
+</section>

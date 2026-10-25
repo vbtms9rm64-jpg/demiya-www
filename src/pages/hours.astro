@@ -1,0 +1,36 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import PageHero from "../components/PageHero.astro";
+import Section from "../components/Section.astro";
+import HoursAccordion from "../components/HoursAccordion.astro";
+import Reviews from "../components/Reviews.astro";
+import InstagramCta from "../components/InstagramCta.astro";
+import { reviews as reviewsCopy } from "../data/content";
+---
+
+<BaseLayout
+  title="Our Hours — Demiya"
+  description="Opening hours for all five Demiya locations across the Bay Area. All locations are closed Mondays."
+>
+  {/*
+    The original's hero (04eea25) is a row: heading column at 69% with the
+    hours accordion beside it, all inside the 650px band. This is the one
+    page using a FLAT overlay rather than the radial one.
+  */}
+  <PageHero
+    eyebrow="demiya restaurant"
+    heading="Our Hours"
+    body="Find us open, ready to serve"
+    overlay="flat"
+    minHeight={650}
+    layout="split"
+  >
+    <HoursAccordion slot="aside" />
+  </PageHero>
+
+  <Section eyebrow={reviewsCopy.eyebrow} heading={reviewsCopy.heading} body={reviewsCopy.body}>
+    <Reviews />
+  </Section>
+
+  <InstagramCta />
+</BaseLayout>

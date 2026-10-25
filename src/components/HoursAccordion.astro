@@ -1,0 +1,106 @@
+---
+import { locations } from "../data/locations";
+
+/**
+ * The Hours page accordion (widget 183f38b in the original), which sits
+ * inside the hero band beside the heading rather than below it.
+ *
+ * From the Elementor settings:
+ *   titles            Playfair Display 19px, `far fa-clock` icon, 6px gap
+ *   panel + item bg   #FBF5F0, 5px radius, 15px padding
+ *   title colours     #1E0E0A normal → #C0392B open → #7B3F3F hover
+ *   title→content     5px
+ *
+ * Built on native <details>/<summary>, so open/close, keyboard support and
+ * find-in-page all work with no JavaScript.
+ */
+---
+
+<div class="acc">
+  {
+    locations.map((location) => (
+      <details class="acc__item">
+        <summary class="acc__title">
+          <svg class="acc__icon" viewBox="0 0 512 512" aria-hidden="true" focusable="false">
+            <path
+              fill="currentColor"
+              d="M256 8a248 248 0 1 0 0 496 248 248 0 0 0 0-496zm0 448a200 200 0 1 1 0-400 200 200 0 0 1 0 400zm61.8-104.4-84.9-61.7a12 12 0 0 1-4.9-9.7V116a12 12 0 0 1 12-12h32a12 12 0 0 1 12 12v141.7l66.8 48.6a12 12 0 0 1 2.6 16.8l-18.8 25.9a12 12 0 0 1-16.8 2.6z"
+            />
+          </svg>
+          {location.name} Hours
+        </summary>
+
+        <div class="acc__panel">
+          {location.hours.map((row) => (
+            <p class="acc__row">
+              <strong>{row.days}:</strong> {row.times ?? "Closed"}
+            </p>
+          ))}
+        </div>
+      </details>
+    ))
+  }
+</div>
+
+<style>
+  .acc {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .acc__item {
+    background: var(--color-cream);
+    border-radius: 5px;
+    padding: 15px;
+  }
+
+  .acc__title {
+    display: flex;
+    align-items: center;
+    gap: 6px; /* accordion_item_title_space_between */
+    cursor: pointer;
+    list-style: none;
+    font-family: var(--font-display);
+    font-size: 19px;
+    line-height: 1.3;
+    color: var(--color-espresso);
+    transition: color 0.15s ease;
+  }
+
+  /* Hide the default disclosure triangle in both engines. */
+  .acc__title::-webkit-details-marker {
+    display: none;
+  }
+
+  .acc__title:hover {
+    color: var(--color-rosewood);
+  }
+
+  .acc__item[open] > .acc__title {
+    color: var(--color-brick);
+  }
+
+  .acc__icon {
+    flex: none;
+    width: 0.85em;
+    height: 0.85em;
+  }
+
+  .acc__panel {
+    margin-top: 5px; /* accordion_item_title_distance_from_content */
+    background: var(--color-cream);
+    border-radius: 5px;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: var(--color-maroon);
+  }
+
+  .acc__row {
+    margin: 0;
+  }
+
+  .acc__row strong {
+    font-weight: 600;
+  }
+</style>
