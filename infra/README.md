@@ -117,9 +117,14 @@ is cents, CloudFront has a standing free tier that this will not exhaust, Route 
 is the usual per-zone charge, and ACM certificates are free. Compare ~$7/mo for
 the Lightsail instance, plus the patching burden this removes.
 
+## State
+
+Remote, in `s3://soux-tfstate/demiya-www/terraform.tfstate` (versioned,
+encrypted, private), locked with S3's native lockfile. The bucket is created
+once by `bootstrap/create-state-bucket.sh`, not by Terraform. To recover from a
+bad write, restore an earlier object version of the state file.
+
 ## What this does not cover
 
-- **Remote state.** The `backend "s3"` block in `versions.tf` is commented out.
-  Local state is fine for the first apply; move it before a second person runs this.
 - **The old instance.** Decommission per the incident runbook, and keep the
   forensic snapshot.
