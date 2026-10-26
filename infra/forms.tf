@@ -116,3 +116,15 @@ resource "aws_lambda_permission" "contact_url" {
   principal              = "*"
   function_url_auth_type = "NONE"
 }
+
+# Since late 2025 a public function URL also needs lambda:InvokeFunction, or
+# it returns 403 before the handler runs. invoked_via_function_url limits this
+# grant to calls arriving through the URL, so it does not open direct Invoke
+# to every AWS account. Needs provider >= 6.28.
+resource "aws_lambda_permission" "contact_url_invoke" {
+  statement_id             = "AllowInvokeViaFunctionUrl"
+  action                   = "lambda:InvokeFunction"
+  function_name            = aws_lambda_function.contact.function_name
+  principal                = "*"
+  invoked_via_function_url = true
+}
