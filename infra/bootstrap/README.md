@@ -50,13 +50,20 @@ aws iam create-policy \
 
 ### 2. The Terraform role
 
+> **IAM groups cannot be principals in a trust policy.** There is no way to
+> write `"Principal": {"AWS": ".../group/demiya-cli"}` — AWS rejects it. To
+> make access group-based, the trust policy names the **account root**, which
+> delegates the decision to identity policies; the group's `sts:AssumeRole`
+> permission is then what actually grants it. Adding a second person later
+> means adding them to the group, with no trust-policy edit.
+
 ```bash
 cat > /tmp/trust.json <<'EOF'
 {
   "Version": "2012-10-17",
   "Statement": [{
     "Effect": "Allow",
-    "Principal": { "AWS": "arn:aws:iam::619881442965:user/YOUR_CLI_USER" },
+    "Principal": { "AWS": "arn:aws:iam::619881442965:root" },
     "Action": "sts:AssumeRole",
     "Condition": {
       "Bool": { "aws:MultiFactorAuthPresent": "true" },
@@ -85,22 +92,39 @@ aws iam put-role-policy \
 The MFA conditions are the point: a stolen access key cannot assume this role
 without the second factor.
 
-### 3. Your CLI user
+### 3. The CLI group and user
 
-Needs exactly one permission:
+```bash
+aws iam create-group --group-name demiya-cli
+aws iam put-group-policy \
+  --group-name demiya-cli \
+  --policy-name assume-terraform-role \
+  --policy-document file://cli-group-policy.json
 
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [{
-    "Effect": "Allow",
-    "Action": "sts:AssumeRole",
-    "Resource": "arn:aws:iam::619881442965:role/terraform-demiya-www"
-  }]
-}
+aws iam create-user --user-name demiya-cli-kim
+aws iam add-user-to-group --group-name demiya-cli --user-name demiya-cli-kim
 ```
 
-Nothing else. Its key on disk grants no access to anything by itself.
+`cli-group-policy.json` grants, in effect, one useful thing —
+`sts:AssumeRole` on the Terraform role, and only with MFA present. Everything
+else in it is self-service plumbing so the user can register their own MFA
+device and rotate their own key, scoped to `${aws:username}` so nobody can
+touch anyone else's.
+
+The final `Deny` is the backstop: without MFA, the only permitted calls are
+the ones needed to *enrol* MFA. A leaked key with no second factor can do
+nothing at all.
+
+**Attach no AWS managed policies.** Not `ReadOnlyAccess`, not
+`IAMUserChangePassword` — the group policy already covers it, and managed
+policies are account-wide in scope.
+
+Then create the access key and set up MFA:
+
+```bash
+aws iam create-access-key --user-name demiya-cli-kim   # → ~/.aws/credentials
+# Console → IAM → Users → demiya-cli-kim → Security credentials → assign MFA
+```
 
 ### 4. The local profile
 
