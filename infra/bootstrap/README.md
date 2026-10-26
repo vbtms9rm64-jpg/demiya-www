@@ -40,7 +40,8 @@ anything on its own.
 ### 1. The permissions boundary (create this first)
 
 ```bash
-sed 's/ACCOUNT_ID/619881442965/g' permissions-boundary.json > /tmp/boundary.json
+sed -e 's/ACCOUNT_ID/619881442965/g' -e 's/BUCKET/demiya-www-origin/g' \
+    permissions-boundary.json > /tmp/boundary.json
 aws iam create-policy \
   --policy-name demiya-www-boundary \
   --policy-document file:///tmp/boundary.json \

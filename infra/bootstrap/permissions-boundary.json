@@ -2,26 +2,24 @@
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "DeployRoleCeiling",
+      "Sid": "DeployRoleCeilingBucket",
       "Effect": "Allow",
       "Action": [
         "s3:ListBucket",
         "s3:GetObject",
         "s3:PutObject",
-        "s3:DeleteObject",
-        "cloudfront:CreateInvalidation"
+        "s3:DeleteObject"
       ],
-      "Resource": "*"
+      "Resource": [
+        "arn:aws:s3:::BUCKET",
+        "arn:aws:s3:::BUCKET/*"
+      ]
     },
     {
-      "Sid": "ContactFunctionCeiling",
+      "Sid": "DeployRoleCeilingCdn",
       "Effect": "Allow",
-      "Action": [
-        "ses:SendEmail",
-        "logs:CreateLogStream",
-        "logs:PutLogEvents"
-      ],
-      "Resource": "*"
+      "Action": "cloudfront:CreateInvalidation",
+      "Resource": "arn:aws:cloudfront::ACCOUNT_ID:distribution/*"
     },
     {
       "Sid": "NoPrivilegeEscalationEver",
