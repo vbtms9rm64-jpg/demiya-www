@@ -60,6 +60,21 @@ variable "create_github_oidc_provider" {
   default     = true
 }
 
+variable "role_permissions_boundary" {
+  description = <<-EOT
+    ARN of a permissions boundary to attach to every role this stack creates
+    (the GitHub deploy role and the contact-form Lambda role). Empty means no
+    boundary.
+
+    Set this when provisioning with the scoped credential from
+    `bootstrap/` — that policy *denies* iam:CreateRole unless the new role
+    carries this exact boundary, which is what stops a compromised Terraform
+    credential from minting itself an admin role.
+  EOT
+  type        = string
+  default     = ""
+}
+
 variable "ses_identity" {
   description = <<-EOT
     The verified SES identity the contact form sends as — either a domain

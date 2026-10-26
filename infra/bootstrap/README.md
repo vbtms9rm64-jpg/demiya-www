@@ -1,0 +1,185 @@
+# Provisioning credentials — demiya-www
+
+How to get a credential that can `terraform apply` this stack **without**
+putting an admin key on a laptop.
+
+Values used below, from the account this stack targets:
+
+| | |
+|---|---|
+| Account | `619881442965` |
+| Route 53 zone | `Z104840420AD06SUG7WVM` (`demiya.restaurant`) |
+| Origin bucket | `demiya-www-origin` |
+
+## The shape
+
+```
+you ──MFA──> sts:AssumeRole ──> terraform-demiya-www (role)
+                                 └── terraform-policy.json   ← scoped, 1h creds
+                                      can only create demiya-www-* roles,
+                                      and only if they carry the boundary
+                                                     │
+                                                     ▼
+                                       demiya-www-deploy  (GitHub OIDC)
+                                       demiya-www-contact (Lambda)
+                                        └── capped by permissions-boundary.json
+```
+
+Three separate identities, each useless for the others' jobs:
+
+| Identity | Can do | Lifetime |
+|---|---|---|
+| Your CLI user | `sts:AssumeRole`, nothing else | long-lived key, worthless alone |
+| `terraform-demiya-www` | provision *this* stack only | 1 hour, MFA-gated |
+| `demiya-www-deploy` | `s3 sync` + invalidate | ~15 min, GitHub OIDC only |
+
+**No admin credential exists at any point**, and nothing long-lived can do
+anything on its own.
+
+## Setup
+
+### 1. The permissions boundary (create this first)
+
+```bash
+sed 's/ACCOUNT_ID/619881442965/g' permissions-boundary.json > /tmp/boundary.json
+aws iam create-policy \
+  --policy-name demiya-www-boundary \
+  --policy-document file:///tmp/boundary.json \
+  --description "Ceiling for roles created by the demiya-www stack"
+```
+
+### 2. The Terraform role
+
+```bash
+cat > /tmp/trust.json <<'EOF'
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Principal": { "AWS": "arn:aws:iam::619881442965:user/YOUR_CLI_USER" },
+    "Action": "sts:AssumeRole",
+    "Condition": {
+      "Bool": { "aws:MultiFactorAuthPresent": "true" },
+      "NumericLessThan": { "aws:MultiFactorAuthAge": "3600" }
+    }
+  }]
+}
+EOF
+
+aws iam create-role \
+  --role-name terraform-demiya-www \
+  --assume-role-policy-document file:///tmp/trust.json \
+  --max-session-duration 3600
+
+sed -e 's/ACCOUNT_ID/619881442965/g' \
+    -e 's/ZONE_ID/Z104840420AD06SUG7WVM/g' \
+    -e 's/BUCKET/demiya-www-origin/g' \
+    terraform-policy.json > /tmp/tf.json
+
+aws iam put-role-policy \
+  --role-name terraform-demiya-www \
+  --policy-name provision-demiya-www \
+  --policy-document file:///tmp/tf.json
+```
+
+The MFA conditions are the point: a stolen access key cannot assume this role
+without the second factor.
+
+### 3. Your CLI user
+
+Needs exactly one permission:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Action": "sts:AssumeRole",
+    "Resource": "arn:aws:iam::619881442965:role/terraform-demiya-www"
+  }]
+}
+```
+
+Nothing else. Its key on disk grants no access to anything by itself.
+
+### 4. The local profile
+
+`~/.aws/config`:
+
+```ini
+[profile demiya-tf]
+role_arn       = arn:aws:iam::619881442965:role/terraform-demiya-www
+source_profile = demiya-cli
+mfa_serial     = arn:aws:iam::619881442965:mfa/YOUR_MFA_DEVICE
+region         = us-west-2
+duration_seconds = 3600
+```
+
+`~/.aws/credentials` keeps `[demiya-cli]` with the assume-role-only key.
+
+Then:
+
+```bash
+AWS_PROFILE=demiya-tf terraform -chdir=.. plan      # prompts for an MFA code
+```
+
+## Telling Terraform about the boundary
+
+Already wired. Both roles read `var.role_permissions_boundary`, so set it in
+`terraform.tfvars`:
+
+```hcl
+role_permissions_boundary = "arn:aws:iam::619881442965:policy/demiya-www-boundary"
+```
+
+It defaults to empty (no boundary), so the stack still applies with admin
+credentials if you skip this bootstrap entirely. But with the scoped role,
+leaving it empty means `iam:CreateRole` is **denied** — that Deny is the whole
+point of the control.
+
+Both roles are already named `demiya-www-*`, matching the prefix the policy
+allows.
+
+## Why there are no comments in the JSON
+
+IAM policy documents accept only `Version`, `Id`, `Statement`, and a fixed set
+of statement keys. A stray `Comment` field is rejected with
+`MalformedPolicyDocument`, so the reasoning lives here instead. Don't add them
+back to the `.json` files.
+
+## Where it is genuinely not least-privilege
+
+Two services do not support resource-level permissions on their create
+actions, so those statements use `"Resource": "*"`:
+
+- **CloudFront** — it is a global service; no ARN exists before creation
+- **ACM `RequestCertificate`** — same
+
+A compromise of the Terraform role could therefore create CloudFront
+distributions or request certificates elsewhere in the account. The region
+lock and the hour-long, MFA-gated session are what bound that. If it matters
+more than it does here, the fix is a separate AWS account for the marketing
+site, which removes the shared blast radius entirely.
+
+## Blast radius
+
+| Compromised | They get |
+|---|---|
+| CLI user key alone | Nothing — needs MFA to assume anything |
+| CLI key **+** MFA device | 1 hour of this stack, in two regions |
+| GitHub Actions OIDC | Write to one bucket, invalidate one distribution. No IAM, no other service. |
+| `demiya-www-contact` Lambda | `ses:SendEmail` and its own log stream |
+| `certbot` user (existing) | Route 53 record writes on one zone |
+
+The worst case — full compromise of the Terraform role — damages or deletes
+the marketing site. It cannot touch the Soux platform, cannot create users or
+roles outside the `demiya-www-*` prefix, and cannot grant itself anything the
+boundary does not already allow.
+
+## After the first apply
+
+- `aws iam get-role --role-name demiya-www-deploy --query 'Role.PermissionsBoundary'`
+  → confirm the boundary actually attached
+- Enable CloudTrail if it is not already on — this is the only record of what
+  the role did
+- Rotate the CLI user's key periodically; it is the one long-lived secret left

@@ -49,9 +49,10 @@ data "aws_iam_policy_document" "deploy_assume" {
 }
 
 resource "aws_iam_role" "deploy" {
-  name               = "demiya-www-deploy"
-  description        = "GitHub Actions deploy role for the ${var.domain_name} marketing site"
-  assume_role_policy = data.aws_iam_policy_document.deploy_assume.json
+  name                 = "demiya-www-deploy"
+  permissions_boundary = var.role_permissions_boundary != "" ? var.role_permissions_boundary : null
+  description          = "GitHub Actions deploy role for the ${var.domain_name} marketing site"
+  assume_role_policy   = data.aws_iam_policy_document.deploy_assume.json
 }
 
 data "aws_iam_policy_document" "deploy" {

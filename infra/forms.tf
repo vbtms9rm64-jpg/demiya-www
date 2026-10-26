@@ -23,9 +23,10 @@ data "aws_iam_policy_document" "contact_assume" {
 }
 
 resource "aws_iam_role" "contact" {
-  name               = "demiya-www-contact"
-  description        = "Contact form handler for ${var.domain_name}"
-  assume_role_policy = data.aws_iam_policy_document.contact_assume.json
+  name                 = "demiya-www-contact"
+  permissions_boundary = var.role_permissions_boundary != "" ? var.role_permissions_boundary : null
+  description          = "Contact form handler for ${var.domain_name}"
+  assume_role_policy   = data.aws_iam_policy_document.contact_assume.json
 }
 
 data "aws_iam_policy_document" "contact" {
