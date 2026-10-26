@@ -51,9 +51,15 @@ variable "price_class" {
 }
 
 variable "github_repository" {
-  description = "owner/repo allowed to assume the deploy role via OIDC."
+  description = <<-EOT
+    Repository part of the OIDC `sub` claim allowed to assume the deploy role.
+    This repo uses GitHub's immutable subject format, owner@<id>/repo@<id>,
+    which survives renames and can't be claimed by a re-registered name.
+    Read the live prefix with:
+      gh api repos/OWNER/REPO/actions/oidc/customization/sub
+  EOT
   type        = string
-  default     = "vbtms9rm64-jpg/demiya-www"
+  default     = "vbtms9rm64-jpg@348009490/demiya-www@1433642341"
 }
 
 variable "github_deploy_ref" {

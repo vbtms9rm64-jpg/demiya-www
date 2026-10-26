@@ -25,7 +25,8 @@ contact_from_address    = "website@demiya.restaurant"
 contact_to_address      = "hello@demiya.restaurant"
 contact_max_concurrency = 5
 
-github_repository = "vbtms9rm64-jpg/demiya-www"
+# Immutable OIDC subject (owner@id/repo@id) — see variables.tf.
+github_repository = "vbtms9rm64-jpg@348009490/demiya-www@1433642341"
 github_deploy_ref = "refs/heads/main"
 
 # Set false if another stack in this AWS account already created the GitHub
