@@ -72,11 +72,8 @@ as GitHub Actions **repository variables** (not secrets — none are sensitive):
 | `AWS_REGION` | `us-west-2` |
 | `S3_BUCKET` | `terraform output bucket_name` |
 | `CLOUDFRONT_DISTRIBUTION` | `terraform output distribution_id` |
-| `PUBLIC_CONTACT_ENDPOINT` | `terraform output contact_form_endpoint` |
 
-No GitHub **secrets** are needed. Site content is static (`src/data/`), and the
-contact endpoint is a public URL by design — the Lambda validates origin and
-honeypot rather than relying on the URL being unguessable.
+No GitHub **secrets** are needed. Site content is static (`src/data/`).
 
 ## Verify before DNS points at it
 
@@ -119,27 +116,6 @@ At this traffic: a few dollars a month at most. S3 storage for a four-page site
 is cents, CloudFront has a standing free tier that this will not exhaust, Route 53
 is the usual per-zone charge, and ACM certificates are free. Compare ~$7/mo for
 the Lightsail instance, plus the patching burden this removes.
-
-## Contact form
-
-`forms.tf` provisions a Lambda Function URL that validates the submission and
-sends it through SES. It is the only executable code in the stack, and it sits
-entirely outside the S3/CloudFront path — the site itself stays pure static
-assets.
-
-Prerequisites, neither of which Terraform can do for you:
-
-1. **`ses_identity` must already be verified** in SES in `aws_region`.
-2. **SES must be out of sandbox** to deliver to arbitrary recipients. In
-   sandbox, only verified addresses receive mail.
-
-The handler imports `@aws-sdk/client-sesv2` from the Node 22 Lambda runtime's
-bundled SDK, so there is no build step. To pin the version instead, add a
-`package.json` in `lambda/contact/`, run `npm install --omit=dev` there before
-`terraform apply`, and `archive_file` will include `node_modules`.
-
-Function URLs have no built-in throttling and the endpoint is public, so
-`contact_max_concurrency` caps the blast radius of a flood.
 
 ## What this does not cover
 

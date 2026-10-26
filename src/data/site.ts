@@ -34,9 +34,6 @@ export const site = {
   },
 
   copyright: "© 2016–2025 Demiya Inc. All rights reserved.",
-
-  /** Contact form endpoint — `terraform output contact_form_endpoint`. */
-  contactEndpoint: import.meta.env.PUBLIC_CONTACT_ENDPOINT ?? "",
 } as const;
 
 /** Header navigation, matching the original site. */

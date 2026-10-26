@@ -81,7 +81,7 @@ variable "create_github_oidc_provider" {
 variable "role_permissions_boundary" {
   description = <<-EOT
     ARN of a permissions boundary to attach to every role this stack creates
-    (the GitHub deploy role and the contact-form Lambda role). Empty means no
+    (the GitHub deploy role). Empty means no
     boundary.
 
     Set this when provisioning with the scoped credential from
@@ -91,39 +91,6 @@ variable "role_permissions_boundary" {
   EOT
   type        = string
   default     = ""
-}
-
-variable "ses_identity" {
-  description = <<-EOT
-    The verified SES identity the contact form sends as — either a domain
-    ("demiya.restaurant") or a single address. Must already be verified in SES
-    in `aws_region`, and SES must be out of sandbox to reach arbitrary
-    recipients.
-  EOT
-  type        = string
-  default     = "demiya.restaurant"
-}
-
-variable "contact_from_address" {
-  description = "Envelope From for contact-form mail. Must fall under ses_identity."
-  type        = string
-  default     = "website@demiya.restaurant"
-}
-
-variable "contact_to_address" {
-  description = "Where contact-form submissions are delivered."
-  type        = string
-  default     = "hello@demiya.restaurant"
-}
-
-variable "contact_max_concurrency" {
-  description = <<-EOT
-    Reserved concurrency for the contact handler. Function URLs have no
-    built-in throttling and the endpoint is public, so this caps how much a
-    flood can cost you.
-  EOT
-  type        = number
-  default     = 5
 }
 
 variable "tags" {

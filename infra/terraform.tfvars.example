@@ -18,12 +18,6 @@ bucket_name = "demiya-www-origin"
 # from Asia-Pacific or South America worth paying for.
 price_class = "PriceClass_100"
 
-# Contact form. ses_identity must already be verified in SES in aws_region,
-# and SES must be out of sandbox to deliver to arbitrary recipients.
-ses_identity            = "demiya.restaurant"
-contact_from_address    = "website@demiya.restaurant"
-contact_to_address      = "hello@demiya.restaurant"
-contact_max_concurrency = 5
 
 # Immutable OIDC subject (owner@id/repo@id) — see variables.tf.
 github_repository = "vbtms9rm64-jpg@348009490/demiya-www@1433642341"

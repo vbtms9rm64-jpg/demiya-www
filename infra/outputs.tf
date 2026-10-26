@@ -23,11 +23,6 @@ output "certificate_arn" {
   value       = aws_acm_certificate_validation.site.certificate_arn
 }
 
-output "contact_form_endpoint" {
-  description = "Lambda Function URL for the contact form. Set as PUBLIC_CONTACT_ENDPOINT in the Astro build."
-  value       = aws_lambda_function_url.contact.function_url
-}
-
 output "github_actions_env" {
   description = "Values to paste into the deploy workflow."
   value = {

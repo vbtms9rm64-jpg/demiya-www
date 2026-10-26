@@ -4,8 +4,11 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "6.68.0" # >= 6.28 for invoked_via_function_url; pinned exact
+      version = "6.68.0" # pinned exact
     }
+    # No longer used by any resource (it packaged the removed contact Lambda).
+    # Kept for one apply so Terraform can drop data.archive_file from state;
+    # delete afterwards.
     archive = {
       source  = "hashicorp/archive"
       version = "~> 2.6"

@@ -53,14 +53,15 @@ Two details worth protecting when you edit:
 | `/` | Home | `home` (id 8) |
 | `/hours/` | Our Hours | `hours` (id 27) |
 | `/locations-order/` | Locations & Order | `locations-order` (id 30) |
-| `/contact/` | Contact form | *new — the original had no form* |
+| `/contact/` | Contact (text line) | *new* |
 
 URLs match the WordPress paths, so existing inbound links and whatever
 search ranking survives the cleanup carry over without redirects.
 
-The contact page is additive: the original site had no form, only the SMS
-line. It is linked from the footer rather than the header so the primary nav
-stays as it was. It posts to the Lambda in `infra/forms.tf`.
+The contact page is additive and points to the SMS line, which is how every
+customer contact actually arrives. A contact form was built and removed: the
+old site's form received zero emails. It is linked from the footer rather than
+the header so the primary nav stays as it was.
 
 ## Brand
 
@@ -120,7 +121,7 @@ monthly scheduled rebuild.
 ## Deploying
 
 Infrastructure and the deploy pipeline are in `infra/` — S3, CloudFront, ACM,
-Route 53, a GitHub Actions OIDC role, and the contact-form Lambda. See
+Route 53, and a GitHub Actions OIDC role. See
 `infra/README.md`.
 
 Push to `main` and `.github/workflows/deploy.yml` builds, syncs to S3, and

@@ -29,11 +29,6 @@ jobs:
 
       - name: Build
         run: npm run build
-        env:
-          # Not a secret: the contact form's Function URL is public by design,
-          # and the Lambda validates origin and honeypot. Content comes from
-          # src/data/, so the build has no external dependencies.
-          PUBLIC_CONTACT_ENDPOINT: ${{ vars.PUBLIC_CONTACT_ENDPOINT }}
 
       # Everything below needs the infrastructure to exist. Until `terraform
       # apply` has run and the repository variables are set, the build above
