@@ -32,6 +32,18 @@ variable "bucket_name" {
   default     = "demiya-www-origin"
 }
 
+variable "serve_from_cloudfront" {
+  description = <<-EOT
+    Point the apex and www A/AAAA records at CloudFront. Leave false for the
+    first apply: the zone still holds records for the old Lightsail host,
+    and the bucket is empty until the first GitHub Actions deploy. Flip to
+    true once the site is verified through CloudFront — the records then
+    overwrite (UPSERT) the old ones in place.
+  EOT
+  type        = bool
+  default     = false
+}
+
 variable "price_class" {
   description = "CloudFront price class. PriceClass_100 (NA + EU) is ample for a Bay Area restaurant site."
   type        = string

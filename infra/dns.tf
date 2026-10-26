@@ -10,14 +10,18 @@ data "aws_route53_zone" "site" {
 locals {
   # Apex and www both point at the distribution; the CloudFront function
   # redirects whichever is not canonical.
-  site_hosts = {
+  site_hosts = var.serve_from_cloudfront ? {
     apex = var.domain_name
     www  = local.www_host
-  }
+  } : {}
 }
 
 resource "aws_route53_record" "ipv4" {
   for_each = local.site_hosts
+
+  # The zone already holds plain A/AAAA records for the old host; replace
+  # them in place rather than failing on "already exists".
+  allow_overwrite = true
 
   zone_id = data.aws_route53_zone.site.zone_id
   name    = each.value
@@ -32,6 +36,10 @@ resource "aws_route53_record" "ipv4" {
 
 resource "aws_route53_record" "ipv6" {
   for_each = local.site_hosts
+
+  # The zone already holds plain A/AAAA records for the old host; replace
+  # them in place rather than failing on "already exists".
+  allow_overwrite = true
 
   zone_id = data.aws_route53_zone.site.zone_id
   name    = each.value

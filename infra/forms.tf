@@ -106,3 +106,13 @@ resource "aws_lambda_function_url" "contact" {
     allow_credentials = false
   }
 }
+
+# The console adds this automatically when it creates a public function URL;
+# the API (and so Terraform) does not, and without it the URL returns 403.
+resource "aws_lambda_permission" "contact_url" {
+  statement_id           = "AllowPublicFunctionUrl"
+  action                 = "lambda:InvokeFunctionUrl"
+  function_name          = aws_lambda_function.contact.function_name
+  principal              = "*"
+  function_url_auth_type = "NONE"
+}

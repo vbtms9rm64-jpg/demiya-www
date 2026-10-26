@@ -7,6 +7,10 @@ route53_zone_name = "demiya.restaurant"
 # Which hostname actually serves content. The other 301-redirects to it.
 canonical_host = "demiya.restaurant"
 
+# false until the site is deployed and verified via CloudFront; true moves
+# the apex + www records off the old host. See variables.tf.
+serve_from_cloudfront = false
+
 # Must be globally unique across all of S3.
 bucket_name = "demiya-www-origin"
 
