@@ -111,7 +111,8 @@
       "Effect": "Allow",
       "Action": [
         "route53:ListHostedZones",
-        "route53:GetChange"
+        "route53:GetChange",
+        "route53:ListHostedZonesByName"
       ],
       "Resource": "*"
     },
@@ -121,7 +122,8 @@
       "Action": [
         "route53:GetHostedZone",
         "route53:ListResourceRecordSets",
-        "route53:ChangeResourceRecordSets"
+        "route53:ChangeResourceRecordSets",
+        "route53:ListTagsForResource"
       ],
       "Resource": "arn:aws:route53:::hostedzone/ZONE_ID"
     },
@@ -134,7 +136,8 @@
         "iam:ListOpenIDConnectProviders",
         "iam:DeleteOpenIDConnectProvider",
         "iam:TagOpenIDConnectProvider",
-        "iam:UpdateOpenIDConnectProviderThumbprint"
+        "iam:UpdateOpenIDConnectProviderThumbprint",
+        "iam:UntagOpenIDConnectProvider"
       ],
       "Resource": "arn:aws:iam::ACCOUNT_ID:oidc-provider/token.actions.githubusercontent.com"
     },
@@ -223,9 +226,17 @@
         "lambda:AddPermission",
         "lambda:RemovePermission",
         "lambda:GetPolicy",
-        "lambda:GetFunctionCodeSigningConfig"
+        "lambda:GetFunctionCodeSigningConfig",
+        "lambda:ListVersionsByFunction",
+        "lambda:GetRuntimeManagementConfig"
       ],
       "Resource": "arn:aws:lambda:us-west-2:ACCOUNT_ID:function:demiya-www-*"
+    },
+    {
+      "Sid": "FindLogGroups",
+      "Effect": "Allow",
+      "Action": "logs:DescribeLogGroups",
+      "Resource": "arn:aws:logs:us-west-2:ACCOUNT_ID:log-group:*"
     },
     {
       "Sid": "FunctionLogs",
@@ -233,7 +244,6 @@
       "Action": [
         "logs:CreateLogGroup",
         "logs:DeleteLogGroup",
-        "logs:DescribeLogGroups",
         "logs:PutRetentionPolicy",
         "logs:DeleteRetentionPolicy",
         "logs:TagResource",
