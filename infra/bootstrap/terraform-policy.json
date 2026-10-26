@@ -63,6 +63,36 @@
       "Resource": "arn:aws:s3:::BUCKET"
     },
     {
+      "Sid": "StateBucket",
+      "Effect": "Allow",
+      "Action": [
+        "s3:CreateBucket",
+        "s3:ListBucket",
+        "s3:GetBucketLocation",
+        "s3:GetBucketVersioning",
+        "s3:PutBucketVersioning",
+        "s3:GetBucketPublicAccessBlock",
+        "s3:PutBucketPublicAccessBlock",
+        "s3:GetBucketOwnershipControls",
+        "s3:PutBucketOwnershipControls",
+        "s3:GetEncryptionConfiguration",
+        "s3:PutEncryptionConfiguration",
+        "s3:GetBucketPolicy",
+        "s3:PutBucketPolicy"
+      ],
+      "Resource": "arn:aws:s3:::soux-tfstate"
+    },
+    {
+      "Sid": "StateObjectsThisStackOnly",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:DeleteObject"
+      ],
+      "Resource": "arn:aws:s3:::soux-tfstate/demiya-www/*"
+    },
+    {
       "Sid": "Certificate",
       "Effect": "Allow",
       "Action": [

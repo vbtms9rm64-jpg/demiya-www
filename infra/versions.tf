@@ -8,17 +8,15 @@ terraform {
     }
   }
 
-  # Remote state. Bootstrap the bucket + lock table once (by hand or in a
-  # separate root module), then uncomment. Running this module with local
-  # state is fine for the first apply.
-  #
-  # backend "s3" {
-  #   bucket       = "soux-tfstate"
-  #   key          = "demiya-www/terraform.tfstate"
-  #   region       = "us-west-2"
-  #   use_lockfile = true
-  #   encrypt      = true
-  # }
+  # Remote state. Bucket created once by bootstrap/create-state-bucket.sh (versioned,
+  # encrypted, private). use_lockfile is S3-native locking — no DynamoDB table.
+  backend "s3" {
+    bucket       = "soux-tfstate"
+    key          = "demiya-www/terraform.tfstate"
+    region       = "us-west-2"
+    use_lockfile = true
+    encrypt      = true
+  }
 }
 
 provider "aws" {
