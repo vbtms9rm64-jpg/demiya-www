@@ -3,8 +3,12 @@
 #
 # Not managed by Terraform on purpose — the backend has to exist before
 # `terraform init` can use it. Run with the terraform-demiya-www role's
-# credentials (see README.md); its policy allows exactly these calls on this
-# one bucket. Safe to re-run: every step is idempotent.
+# credentials (see README.md). Safe to re-run: every step is idempotent.
+#
+# Already run (2026-10-26). The create/configure permissions it needed were
+# then removed from terraform-policy.json — the role keeps only ListBucket on
+# the bucket and object access under demiya-www/. To run this again, restore
+# the bucket-level s3:CreateBucket / Put* actions on arn:aws:s3:::soux-tfstate.
 set -euo pipefail
 
 BUCKET="soux-tfstate"

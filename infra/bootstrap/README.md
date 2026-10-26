@@ -21,7 +21,6 @@ you ──MFA──> sts:AssumeRole ──> terraform-demiya-www (role)
                                                      │
                                                      ▼
                                        demiya-www-deploy  (GitHub OIDC)
-                                       demiya-www-contact (Lambda)
                                         └── capped by permissions-boundary.json
 ```
 
@@ -192,7 +191,6 @@ site, which removes the shared blast radius entirely.
 | CLI user key alone | Nothing — needs MFA to assume anything |
 | CLI key **+** MFA device | 1 hour of this stack, in two regions |
 | GitHub Actions OIDC | Write to one bucket, invalidate one distribution. No IAM, no other service. |
-| `demiya-www-contact` Lambda | `ses:SendEmail` and its own log stream |
 | `certbot` user (existing) | Route 53 record writes on one zone |
 
 The worst case — full compromise of the Terraform role — damages or deletes
